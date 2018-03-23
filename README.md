@@ -13,11 +13,12 @@ Description:
   
   The parser will automatically recognize the following types: 
   
- --(single) path/string    = string with pathname/caracter
- --(multiple) path/        = 1xm cell with m pathnames listed after {header}
- -- boolean                = false or true logical (case sensitive!)
- -- vector                 = simple 1xm vector with m space separated values after header
- -- cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
+        - (single) path/string    = string with pathname/caracter
+        - (multiple) path/        = 1xm cell with m pathnames listed after {header}
+        - boolean                = false or true logical (case sensitive!)
+        - vector                 = simple 1xm vector with m space separated values after header
+        - cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). 
+          Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
  
   
 - File type is also customizable (i.e. txt or conf or whatever)
