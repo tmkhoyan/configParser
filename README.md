@@ -2,8 +2,8 @@
 a simple config parser for Matlab
 
 Description:
--A simle config parser for types of string,boolean, vector,cell and matrix values. The parser uses simple headers with customizable header and comment delimiters. In other words use a delimiter of your preference for comments ( e.g. // or %, or  ) and setting headers (e.g. {myoption1} or [myoption2]). De delimiters can be provided to readConfig as second and third input for comments and headers respectively. First option is the path to the config file.
--The parser will generate a stuct with settings that are accecible via same header names. Example: 
+- A simle config parser for types of string,boolean, vector,cell and matrix values. The parser uses simple headers with customizable header and comment delimiters. In other words use a delimiter of your preference for comments ( e.g. // or %, or  ) and setting headers (e.g. {myoption1} or [myoption2]). De delimiters can be provided to readConfig as second and third input for comments and headers respectively. First option is the path to the config file.
+- The parser will generate a stuct with settings that are accecible via same header names. Example: 
 
   in config file  --> set option with 
   {myoption1}
@@ -13,11 +13,11 @@ Description:
   
   The parser will automatically recognize the following types: 
   
- -(single) path/string    = string with pathname/caracter
- -(multiple) path/        = 1xm cell with m pathnames listed after {header}
- - boolean                = false or true logical (case sensitive!)
- - vector                 = simple 1xm vector with m space separated values after header
- - cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
+ --(single) path/string    = string with pathname/caracter
+ --(multiple) path/        = 1xm cell with m pathnames listed after {header}
+ -- boolean                = false or true logical (case sensitive!)
+ -- vector                 = simple 1xm vector with m space separated values after header
+ -- cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
  
   
 -File type is also customizable (i.e. txt or conf or whatever)
