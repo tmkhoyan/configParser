@@ -1,0 +1,22 @@
+//leave first line empty
+
+//comment as such 
+
+{path}
+/bla/bla
+{paths}
+/bla/bla
+/bla/bla2
+
+
+{boolean}
+false
+//use lowercase
+
+
+{vector}
+1 2 3
+
+{cell}
+1 2 3
+4 5 6
