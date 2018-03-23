@@ -20,15 +20,16 @@ Description:
  -- cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
  
   
--File type is also customizable (i.e. txt or conf or whatever)
--order of files is not relevant
+- File type is also customizable (i.e. txt or conf or whatever)
+- order of files is not relevant
+
 Usage: 
--create a txt file similar to config.txt
+- create a txt file similar to config.txt
   e.g.
--put desired header names in a cell with strings (order is not relevant but caracters must match) 
--acces config with:
+- put desired header names in a cell with strings (order is not relevant but caracters must match) 
+- acces config with:
     [options] = readConfig('path/to/config',headernames,'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: -
--loadOptionsList is a local function to create the header names. If this is not desired simply use:
+- loadOptionsList is a local function to create the header names. If this is not desired simply use:
        % optionsList = {...
        %      'path'
        %      'paths'
