@@ -38,6 +38,7 @@ disp(T)
             'currentdir'
             'projectdir'
             'appendeddir'
+            'correctedpath'
             };
     end
 

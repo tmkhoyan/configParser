@@ -23,11 +23,19 @@ false
 4 5 6
 
 //2.0 functionality
+
+//example using pwd
 {currentdir}
 pwd
 
+//example using variable addition
 {projectdir}
 /root/project
 
+//composite path 
 {appendeddir}
 /bin/{projectdir}../
+
+//the parser will correct double path delimiters //
+{correctedpath}
+/bla//bla
