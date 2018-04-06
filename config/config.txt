@@ -34,7 +34,8 @@ pwd
 
 //composite path 
 {appendeddir}
-/bin/{projectdir}../
+~/{projectdir}/bin
+// also works {projectdir}/{projectdir}/
 
 //the parser will correct double path delimiters //
 {correctedpath}
