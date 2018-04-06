@@ -202,3 +202,23 @@ end
        %      'boolean'
        %      'vector'
        %      'cell'
+       
+% Usage of 2.0 functionality: 
+% 
+% - as of 2.0 the parser will recognize pwd command. so using: 
+% {mydir} --> {mydir}
+% pwd     --> path/to/location/calling/master/function
+% In other words if you call readConfig with mast.m located at ~/somedirectory/ the options.mydir = ~/somedirectory/
+% 
+% Parser will now also allow variable additions. In other words if you define a variable {mydir} you can use this to construct a new variable composed partially or fully of {mydir}. Example:
+% 
+% define:
+%  {mydir}
+% ~/somepath/
+% use {mydir} to definecomposite path variable 
+% 
+% {myotherdir}
+% {mydir}/../ 
+% 
+% Now the {myotherdir} will point to a folder level higher than {mydir} (this is due to addition ../)
+% This can also be use for addition of any string variables. Note that the functionality doesn't work yet for numeric values. In case there is interest i might consider adding that.  
