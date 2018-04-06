@@ -12,18 +12,17 @@ function master()
 
 configpath = 'config/config.txt';
 %read config
-[options, optionsCell] = readConfig(configpath,loadOptionsList,'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
+[options, opionsList] = readConfig(configpath,loadOptionsList,'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
 
 
 %display 
-optionsList = loadOptionsList;
-T = cell2table(optionsCell');
-varnames = circshift(T.Properties.VariableNames,1); varnames{1} = 'Headers';
-T.Properties.VariableNames = varnames;  
-%T = table(optionsList,optionsList,'Variablenames',{'variables' 'value'});
-disp('   ----------------config options-----------------')
-disp(' ')
-disp(T)
+T = table(loadOptionsList,loadOptionsList,'Variablenames',{'variables' 'value'});
+   disp('Variable:                 setting:') 
+for k=1:numel(optionsList)
+   % T(k,1) = eval(options.(loadOptionsList{k}));
+   disp(optionsList) 
+end
+
 
 % this is a local function to create the header names. 
 
@@ -35,9 +34,6 @@ disp(T)
             'boolean'
             'vector'
             'cell'
-            'currentdir'
-            'projectdir'
-            'appendeddir'
             };
     end
 

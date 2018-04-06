@@ -5,13 +5,11 @@ function [configOptionsStruct, configOptionsCell, allheaders] = readConfig(filen
 %   Delft University of Technology, 2017
 
 % see below for description
-headerDelim = [];
-maxheaders = [];
-structnamefieldfillelemn = [];
+
 setOptargs;
 
 fileID = fopen(filename);
-charsizecomment = numel(commentDelim); %#ok<SHVAI>
+charsizecomment = numel(commentDelim);
 
 fgets(fileID); %skip header
 N = 1000; %lines
@@ -25,14 +23,14 @@ rowcount = 2; %to make sure first heder gets
 
 noncharIdx = zeros(size(configOptionsCell));
 %put back old
-while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+10))) 
+while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+10)))
     
     %read
     nextline = strtrim(fgetl(fileID));
     numchar = numel(nextline);
     if (~isempty(nextline) && sum(nextline(1:min(numchar,charsizecomment)) == commentDelim) ~= charsizecomment)
         
-        if (nextline([1 end]) == headerDelim)  % % new header
+        if (nextline([1 end]) == headerDelim)  % new header
             
             rowcount = 2;
             configOptionsCell(1,headercount) = {nextline};    %header
@@ -40,14 +38,11 @@ while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+
             headercount = headercount + 1;
             % optionList
         elseif (headercount>1)
-            if (isempty(str2num(nextline))) %#ok<*ST2NM> %%&& ~strcmp(nextline,'[]'))
-            %if (isempty(str2double(nextline))) %%&& ~strcmp(nextline,'[]'))
+            if (isempty(str2num(nextline))) %%&& ~strcmp(nextline,'[]'))
             configOptionsCell(rowcount,headercount-1) = {nextline}; %option
-            noncharIdx(rowcount,headercount-1) = 0;
             else 
             configOptionsCell(rowcount,headercount-1) = {str2num(nextline)}; %convert to numbers    
-            %configOptionsCell(rowcount,headercount-1) = {str2double(nextline)}; %convert to numbers    
-            noncharIdx(rowcount,headercount-1) = 1;
+            noncharIdx(rowcount,headercount-1) = [1];
             end 
             rowcount = rowcount + 1;
             allheaders(headercount-1,2) = {rowcount-2}; %update number of elements
@@ -63,22 +58,17 @@ while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+
 end
 
 %cleanup options
-linenum = loopcount; %#ok<NASGU>
+linenum = loopcount;
 emptyRows = ~sum(~cellfun('isempty',configOptionsCell),2); %emty rows
 configOptionsCell(emptyRows,:) = [];
 noncharIdx(emptyRows,:) = [];
-% checkheaders = configOptionsCell{~noncharIdx};
-% checkvals    = configOptionsCell{2,k};
-
 noncharIdx(1,:) = 1; % dont covert headers
 noncharIdx = logical(noncharIdx);
 allheaders = allheaders(1:size(configOptionsCell,2),:);
 
 configOptionsCell(cellfun('isempty',configOptionsCell)) = {'~NaN'}; % fill all empty fields with nan
 
-%TODO consider using function handle instead of parsing pwd. However then
-%option must be accesed as opt.myopt();
- %mydir = @() pwd;
+ mydir = @() pwd;
  %configOptionsCell(strcmp(configOptionsCell,'pwd')) = {mydir}; //to make
  %it an aninymous function. However in usage option must be called with
  %opt.mydir()
@@ -86,10 +76,13 @@ configOptionsCell(cellfun('isempty',configOptionsCell)) = {'~NaN'}; % fill all e
  
  % adding variables together
  %c1 = configOptionsCell;
-
+     checkheaders = configOptionsCell{~noncharIdx};
+     checkvals    = configOptionsCell{2,k};
  for k = 1:numel(configOptionsCell(1,:))
      checkheader = configOptionsCell{1,k};
      checkval    = configOptionsCell{2,k}; %takes only first value if the header has multiple values wont work
+     checkheader
+     checkval
      if(ischar(checkval))
         configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),checkheader,checkval);
      end
@@ -99,6 +92,7 @@ configOptionsCell(cellfun('isempty',configOptionsCell)) = {'~NaN'}; % fill all e
 
   configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),'//','/');
 
+ 
  
 % %in case [] is config option make sure its numeric not string
  configOptionsCell(strcmp(configOptionsCell,'[]')) = {[]};
@@ -117,7 +111,7 @@ end
     optionsSelected = cell(max([allheaders{:,2}]+1),numel(optionsList));
     
     if (headercount-1)>numel(optionsList)
-        if (warnEnabled) %#ok<SHVAI>
+        if (warnEnabled)
         warning(['Extra heading entries in config file, ',filename, ', ignored'])
         end
     end
@@ -136,9 +130,9 @@ end
         fieldname  = optionsList{i};
         fieldname(isspace(fieldname)) = structnamefieldfillelemn;
         if max(rowsmatched)>2
-        configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell(rowsmatched(rowsmatched>=2),columnmatched)); %#ok<SFLD> %fieldvalue is cell
+        configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell(rowsmatched(rowsmatched>=2),columnmatched)); %fieldvalue is cell
         else 
-        configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell{rowsmatched(rowsmatched>=2),columnmatched}); %#ok<SFLD> %fieldvalue is just value
+        configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell{rowsmatched(rowsmatched>=2),columnmatched}); %fieldvalue is just value
         end 
         
     end
@@ -147,13 +141,13 @@ end
 configOptionsCell = optionsSelected;
 
 
-%     function s = initStruct(fieldnames)
-%     zz = fieldnames;
-%     zz(:,2) = {[]};
-%     zz = zz';
-%     s = struct(zz{:});
-%     
-%     end
+    function s = initStruct(fieldnames)
+    zz = fieldnames;
+    zz(:,2) = {[]};
+    zz = zz';
+    s = struct(zz{:});
+    
+    end
 
     function setOptargs
         numvarargs  = length(varargin);
