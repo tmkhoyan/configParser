@@ -3,6 +3,9 @@ function [configOptionsStruct, configOptionsCell, allheaders] = readConfig(filen
 
 %   Author: Tigran Mkhoyan
 %   Delft University of Technology, 2017
+
+% see below for description
+
 setOptargs;
 
 fileID = fopen(filename);
@@ -18,6 +21,7 @@ headercount = 1;
 loopcount = 1;
 rowcount = 2; %to make sure first heder gets
 
+noncharIdx = zeros(size(configOptionsCell));
 %put back old
 while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+10)))
     
@@ -38,6 +42,7 @@ while (~feof(fileID) && loopcount < N && ((headercount+rowcount) <= (maxheaders+
             configOptionsCell(rowcount,headercount-1) = {nextline}; %option
             else 
             configOptionsCell(rowcount,headercount-1) = {str2num(nextline)}; %convert to numbers    
+            noncharIdx(rowcount,headercount-1) = [1];
             end 
             rowcount = rowcount + 1;
             allheaders(headercount-1,2) = {rowcount-2}; %update number of elements
@@ -56,14 +61,37 @@ end
 linenum = loopcount;
 emptyRows = ~sum(~cellfun('isempty',configOptionsCell),2); %emty rows
 configOptionsCell(emptyRows,:) = [];
+noncharIdx(emptyRows,:) = [];
+noncharIdx(1,:) = 1; % dont covert headers
+noncharIdx = logical(noncharIdx);
 allheaders = allheaders(1:size(configOptionsCell,2),:);
 
 configOptionsCell(cellfun('isempty',configOptionsCell)) = {'~NaN'}; % fill all empty fields with nan
 
+ mydir = @() pwd;
+ %configOptionsCell(strcmp(configOptionsCell,'pwd')) = {mydir}; //to make
+ %it an aninymous function. However in usage option must be called with
+ %opt.mydir()
+ configOptionsCell(strcmp(configOptionsCell,'pwd')) = {pwd()};
+ 
+ % adding variables together
+ %c1 = configOptionsCell;
+ for k = 1:numel(configOptionsCell(1,:))
+     checkheader = configOptionsCell{1,k};
+     checkval    = configOptionsCell{2,k}; %takes only first value if the header has multiple values wont work
+     if(ischar(checkval))
+        configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),checkheader,checkval);
+     end
+ end
+ 
+ %check for double path //
+
+  configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),'//','/');
+
+ 
+ 
 % %in case [] is config option make sure its numeric not string
  configOptionsCell(strcmp(configOptionsCell,'[]')) = {[]};
-
-
 %create struct 
 
 
@@ -134,3 +162,43 @@ configOptionsCell = optionsSelected;
 
 end
 
+% ---------------------------------------------------------------------------------:
+
+% Description/Usage:
+% -A simle config parser for types of string,boolean, vector,cell and matrix values. 
+%   The parser uses simple headers with customizable header and comment delimiters. 
+%   In other words use a delimiter of your preference for comments ( e.g. // or %, or  ) and setting headers (e.g. {myoption1} or [myoption2]). 
+%   De delimiters can be provided to readConfig as second and third input for comments and headers respectively. First option is the path to the config file.
+% -The parser will generate a stuct with settings that are accecible via same header names. Example: 
+
+%   in config file  --> set option with 
+%   {myoption1}
+%   1 2 3
+%   in matlab file  --> acces vector [1 2 3] opt struct with
+%   opt.myoption1
+  
+%   The parser will automatically recognize the following types: 
+  
+%  -(single) path/string    = string with pathname/caracter
+%  -(multiple) path/        = 1xm cell with m pathnames listed after {header}
+%  - boolean                = false or true logical (case sensitive!)
+%  - vector                 = simple 1xm vector with m space separated values after header
+%  - cell/matrix            = 2D matrix with m columns (space separated values) and n rows (lines after header). Note that the           function returns a cell. To convert to array simple do cell2mat(opt.mycellarray)
+ 
+  
+% -File type is also customizable (i.e. txt or conf or whatever)
+
+% Usage: 
+% -create a txt file similar to config.txt
+%   e.g.
+% -put desired header names in a cell with strings (order is not relevant but caracters must match) 
+% -acces config with:
+%     [options] = readConfig('path/to/config',headernames,'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: -
+% -use additional options to customyze to needs
+% loadOptionsList is a local function to create the header names. If this is not desired simply use:
+       % optionsList = {...
+       %      'path'
+       %      'paths'
+       %      'boolean'
+       %      'vector'
+       %      'cell'
