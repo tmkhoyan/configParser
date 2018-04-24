@@ -84,27 +84,46 @@ configOptionsCell(cellfun('isempty',configOptionsCell)) = {'~NaN'}; % fill all e
 %opt.mydir()
 configOptionsCell(strcmp(configOptionsCell,'pwd')) = {pwd()};
 
-% adding variables together
+%Update2.0: functionality header addition:
 %c1 = configOptionsCell;
 
 for k = 1:numel(configOptionsCell(1,:))
     checkheader = configOptionsCell{1,k};
-    checkval    = configOptionsCell{2,k}; %takes only first value if the header has multiple values wont work
+    checkval    = configOptionsCell{2,k}; %TODO:takes only first value if the header has multiple values wont work
     if(ischar(checkval))
         configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),checkheader,checkval);
     end
 end
-
 %check for double path //
 
 configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),'//','/');
-
 
 % %in case [] is config option make sure its numeric not string
 configOptionsCell(strcmp(configOptionsCell,'[]')) = {[]};
 %create struct
 
+%Update 2.2: recognize = sign and split header options
+% for k = 1:numel(configOptionsCell(1,:))
+%     %for m =1:numel(configOptionsCell())
+%     checkval    = configOptionsCell{2,k}; %TODO:takes only first value if the header has multiple values wont work
+%     if(ischar(checkval))
+%         configOptionsCell(~noncharIdx) = regexprep(configOptionsCell(~noncharIdx),'=','split');
+%     end
+% end
 
+%generate temp option cell and replace non char values
+tmpconfigOptionsCell = configOptionsCell;
+tmpconfigOptionsCell(noncharIdx) = {''};
+
+dynamicHeaderValIdx = find(~~cellfun(@sum,(regexp(tmpconfigOptionsCell,'=')))); % get the ids of cells to be replaced
+
+toSplitIdx = ~~(zeros(size(noncharIdx)));
+toSplitIdx(dynamicHeaderValIdx) = 1;
+
+configOptionsCell(toSplitIdx) = strtrim(regexp(configOptionsCell(toSplitIdx),'=','split'));
+
+%zz = regexp(configOptionsCell(~noncharIdx),'=','split');
+%zz2 = regexp(configOptionsCell(:,9),'=','split');
 % update: check if header contains same variable twice remove (only first one is used)
 % [~,uniqueindeces] = unique(allheaders(:,1));
 % uniqueindeces = sort(uniqueindeces); % keep order
@@ -117,6 +136,9 @@ headercount = numel(uniqueindeces)+1;
 configOptionsCell = configOptionsCell(:,uniqueindeces);
 %do the same for
 %match options if given
+
+
+
 configOptionsStruct = struct();
 if isempty(optionsList)
     optionsList = allheaders(:,1); %use all headers in case no specific headers are provded to build the struct
