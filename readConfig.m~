@@ -203,8 +203,7 @@ configOptionsCell = optionsSelected;
 
 %UPDATE simulinkparser: now the runtimesettings can be set using two
 %methods: 1. via providing ordered variable arguments. 2. Via providing
-%name tag of runtime option followed by the value e.q.
-%readconfig(...,'structnamefieldfillelemn','__',...) irrespective of the order of variable argument this usage of readConfig will pick the right configuration for the explicit setting 
+%name tag of runt
     function setOptargs
         numvarargs  = length(varargin);
         
