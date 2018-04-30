@@ -131,6 +131,12 @@ configOptionsCell(toSplitIdx) = strtrim(regexp(configOptionsCell(toSplitIdx),'='
 % headercount = numel(uniqueindeces)+1;
 % configOptionsCell = configOptionsCell(:,uniqueindeces);
 
+%UPDATE for simulink parser
+%replace headers names with valid fielnames for structure
+charToreplace = {'/',' '};
+configOptionsCell(1,:) = regexprep(configOptionsCell(1,:),charToreplace,structnamefieldfillelemn);
+allheaders(:,1) = regexprep(allheaders(:,1),charToreplace,structnamefieldfillelemn);
+
 [allheaders, uniqueindeces] = checkUniqness(allheaders);
 headercount = numel(uniqueindeces)+1;
 configOptionsCell = configOptionsCell(:,uniqueindeces);
@@ -138,12 +144,13 @@ configOptionsCell = configOptionsCell(:,uniqueindeces);
 %match options if given
 
 
-
 configOptionsStruct = struct();
 if isempty(optionsList)
     optionsList = allheaders(:,1); %use all headers in case no specific headers are provded to build the struct
 else
+    %replace headers names with valid fielnames for structure
     optionsList = checkUniqness(optionsList);
+    configOptionsCell(1,:) = regexprep(configOptionsCell(1,:),charToreplace,structnamefieldfillelemn);
 end
 
 %  configOptionsStruct = initStruct(optionsList);
@@ -167,7 +174,8 @@ for i=1:numel(optionsList)
     
     %set struct fields
     fieldname  = optionsList{i};
-    fieldname(isspace(fieldname)) = structnamefieldfillelemn;
+    % fieldname(isspace(fieldname)) = structnamefieldfillelemn; already
+    % done by regexprep
     if max(rowsmatched)>2
         configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell(rowsmatched(rowsmatched>=2),columnmatched)); %#ok<SFLD> %fieldvalue is cell
     else
@@ -175,7 +183,6 @@ for i=1:numel(optionsList)
     end
     
 end
-
 
 configOptionsCell = optionsSelected;
 
@@ -194,19 +201,54 @@ configOptionsCell = optionsSelected;
         incell = incell(uniqueIdx,:); % returns full cell
     end
 
+%UPDATE simulinkparser: now the runtimesettings can be set using two
+%methods: 1. via providing ordered variable arguments. 2. Via providing
+%name tag of runtime option followed by the value e.q.
+%readconfig(...,'structnamefieldfillelemn','__',...) irrespective of the order of variable argument this usage of readConfig will pick the right configuration for the explicit setting 
     function setOptargs
         numvarargs  = length(varargin);
         
-        % set defaults for optional inputs
-        if numvarargs > 5
-            error('functions:randRange:TooManyInputs', ...
-                'requires atmost 2 optional input');
-        end
-        
         optargs = {cell(0), '//', '{}',true, '_', 100};
         %optargs{1:numvarargs} = varargin;
-        [optargs{1:numvarargs}] = varargin{:};
-        [optionsList, commentDelim, headerDelim, warnEnabled, structnamefieldfillelemn, maxheaders] = optargs{:};
+        %UPDATE simulink parser. Now one option is parced
+        runtimeSettings = {'optionsList', 'commentDelim', 'headerDelim', 'warnEnabled', 'structnamefieldfillelemn', 'maxheaders'};
+        idx = cell(size(runtimeSettings));
+        idxval = idx;
+        id = idx;
+        %idxval = ~~(zeros(numvarargs,numel(runtimeSettings)));
+        
+        tmp = (zeros(size(runtimeSettings)));
+        % check if explicit options are provided
+        for n=1:numel(runtimeSettings)
+            tmp(n) = 1;
+            idx{n} = strcmpi(varargin,runtimeSettings{n})';
+            idxval{n} = circshift(idx{n},1);
+            id{n} = (tmp*sum(idx{n})==1)'; % (tmp*(sum(idx{n})==1))'; gives doubles array!
+            tmp = tmp*0;
+         end
+        
+        if sum(cellfun(@sum,idx)>1) %if duplicates
+            str = strcat(runtimeSettings,',');
+            error('runtime setting ''%s'' specified more than once',[str{sum(zz,1)>1}])
+            
+        elseif ~(sum(cellfun(@sum,idx))) % regular way of setting runtimesettings
+            % set defaults for optional inputs
+            if numvarargs > 5
+                error('functions:randRange:TooManyInputs', ...
+                    'requires atmost 2 optional input');
+            end
+            %TODO: make this work for all variable arguments
+            [optargs{1:numvarargs}] = varargin{:};
+            [optionsList, commentDelim, headerDelim, warnEnabled, structnamefieldfillelemn, maxheaders] = optargs{:};
+        else % parce from strings order does not matter
+            %set optional argumenst and apliy specific runtime settings for the remaining
+            %idxval = circshift(idx,1); %value must be the enry afer
+            for n=1:numel(runtimeSettings)
+                [optargs{id{n}}] = varargin{idxval{n}};
+            end
+            [optionsList, commentDelim, headerDelim, warnEnabled, structnamefieldfillelemn, maxheaders] = optargs{:};
+            
+        end
     end
 
 end
