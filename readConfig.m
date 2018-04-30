@@ -1,3 +1,4 @@
+
 function [configOptionsStruct, configOptionsCell, allheaders] = readConfig(filename,varargin)
 % Config parser for ASCII based files
 
@@ -121,6 +122,7 @@ toSplitIdx = ~~(zeros(size(noncharIdx)));
 toSplitIdx(dynamicHeaderValIdx) = 1;
 
 configOptionsCell(toSplitIdx) = strtrim(regexp(configOptionsCell(toSplitIdx),'=','split'));
+toSplitHeaderIdx = sum(toSplitIdx)>=1; %indeces of headers with special = operator
 
 %zz = regexp(configOptionsCell(~noncharIdx),'=','split');
 %zz2 = regexp(configOptionsCell(:,9),'=','split');
@@ -176,7 +178,7 @@ for i=1:numel(optionsList)
     fieldname  = optionsList{i};
     % fieldname(isspace(fieldname)) = structnamefieldfillelemn; already
     % done by regexprep
-    if max(rowsmatched)>2
+    if (max(rowsmatched)>2 || toSplitHeaderIdx(i)) % if we have special headers '=' put them al in cell container
         configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell(rowsmatched(rowsmatched>=2),columnmatched)); %#ok<SFLD> %fieldvalue is cell
     else
         configOptionsStruct = setfield(configOptionsStruct,fieldname,configOptionsCell{rowsmatched(rowsmatched>=2),columnmatched}); %#ok<SFLD> %fieldvalue is just value
