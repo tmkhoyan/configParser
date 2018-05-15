@@ -152,7 +152,7 @@ if isempty(optionsList)
 else
     %replace headers names with valid fielnames for structure
     optionsList = checkUniqness(optionsList);
-    configOptionsCell(1,:) = regexprep(configOptionsCell(1,:),charToreplace,structnamefieldfillelemn);
+    optionsList= regexprep(optionsList,charToreplace,structnamefieldfillelemn);
 end
 
 %  configOptionsStruct = initStruct(optionsList);
