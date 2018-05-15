@@ -235,9 +235,9 @@ configOptionsCell = optionsSelected;
             
         elseif ~(sum(cellfun(@sum,idx))) % regular way of setting runtimesettings
             % set defaults for optional inputs
-            if numvarargs > 5
+            if numvarargs > 10
                 error('functions:randRange:TooManyInputs', ...
-                    'requires atmost 2 optional input');
+                    'requires atmost 10 optional input');
             end
             %TODO: make this work for all variable arguments
             [optargs{1:numvarargs}] = varargin{:};

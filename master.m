@@ -8,12 +8,15 @@ function master()
 
 % ---------------------------------------------------------------------------------:
 
-% Usage
+% Usage --> update 2 runtime settings are runtimeSettings = {'optionsList', 'commentDelim', 'headerDelim', 'warnEnabled', 'structnamefieldfillelemn', 'maxheaders'};
+      
+
 
 configpath = 'config/config.txt';
 %read config
-[options, optionsCell] = readConfig(configpath,loadOptionsList,'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
-
+[options, optionsCell] = readConfig(configpath,loadOptionsList(),'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
+%equivalent to: 
+[~, ~] = readConfig(configpath,'optionsList',loadOptionsList(),'headerDelim','{}', 'commentDelim','//');
 
 disp(options.path)    %=  '/bla/bla';
 disp(options.paths)   %=  {2×1 cell};
