@@ -222,114 +222,113 @@ configOptionsCell = optionsSelected;
         
         s = []; % if no symbolic expressions the struct will be returned as empty
         
-        if(~isempty(vec))
-            idx_var = ~~zeros(size(vec));
-            idx_var(1:2:end) = true; % skip one from 1
-            idx_val = ~idx_var; % skip one from 2 i.e shift by one
+        if(~sempty)
+        idx_var = ~~zeros(size(vec));
+        idx_var(1:2:end) = true; % skip one from 1
+        idx_val = ~idx_var; % skip one from 2 i.e shift by one
+        
+        vec_var = vec(idx_var);
+        vec_val = vec(idx_val);
+        
+        %find symbolic expressions in Vals indicated by = @
+        [~,idx_sym] = regexp(vec(idx_val),'@','once');
+        idx_sym = ~cellfun(@isempty,idx_sym);
+        
+        if(sum(idx_sym)) % if we have symbolic expressions else dont bother
             
-            vec_var = vec(idx_var);
-            vec_val = vec(idx_val);
+            %find in symbolic expressions patterns that contain variables and replace with appended variable s.* such that it can later be evaluated using eval
+            % pattern \< 'var(k)' \> is appended to variable such that the search is constrained to whole word. This prevents long named variables partially beeing replaced by short variable names e.g. var a -> cls.alpha instead of s.clapha vaiables
+            rvec_val = vec_val;
+            rvec_val_nested = vec_val;
             
-            %find symbolic expressions in Vals indicated by = @
-            [~,idx_sym] = regexp(vec(idx_val),'@','once');
-            idx_sym = ~cellfun(@isempty,idx_sym);
-            
-            if(sum(idx_sym)) % if we have symbolic expressions else dont bother
-                
-                %find in symbolic expressions patterns that contain variables and replace with appended variable s.* such that it can later be evaluated using eval
-                % pattern \< 'var(k)' \> is appended to variable such that the search is constrained to whole word. This prevents long named variables partially beeing replaced by short variable names e.g. var a -> cls.alpha instead of s.clapha vaiables
-                rvec_val = vec_val;
-                rvec_val_nested = vec_val;
-                
-                rvec_val(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var(~idx_sym),'\>'), strcat('s.',vec_var(~idx_sym)));
-                rvec_val_nested(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var(idx_sym),'\>'), strcat('s.',vec_var(idx_sym)));
-                
-                idx_sym_matlab =  regexp(rvec_val,'@(','once'); % match definition @() then it is a matlab symbolic definition
-                idx_sym_matlab = ~cellfun(@isempty,idx_sym_matlab);
-                
-                idx_sym_keepstr =  regexp(rvec_val,'@\[%s\]','once'); % match definition @() then it is must be kept as string without evaluating
-                idx_sym_keepstr = ~cellfun(@isempty,idx_sym_keepstr);
-                
-                rvec_val = strtrim(regexprep(rvec_val,'@\[%s\]',''));
-                vec_val = strtrim(regexprep(vec_val,'@\[%s\]',''));
-                rvec_val_nested = strtrim(regexprep(rvec_val_nested,'@\[%s\]',''));
-                
-                
-                %also replace original
-                %             if(sum(idx_sym_keepstr))
-                %                 for k=1
-                %                 original
-                %             end
-                
-                %remove @ from value field except @(..) match anything but '('
-                %after @ '@[^(]' . This allows to evaluate matlab syntax
-                %symbolic expressions e.g. @(x,y) (x^2 + y^2)
-                rvec_val = regexprep(rvec_val,'@[^(]','');
-                rvec_val_nested = regexprep(rvec_val_nested,'@[^(]','');
-                %evaluate first non symbolic to obtain constants then sibolic
-                %expressions
-                s = struct();
-                xval = [];  %#ok<NASGU>
-                idx = find(~idx_sym);
-                for l=1:numel(idx)
-                    try
-                        %eval(combinedCell{idx(l)}); % we just need them in the workspace but eval wont work so put in structure
-                        xval = str2num(vec_val{idx(l)});
-                        s.(vec_var{idx(l)}) = xval; %will return empty value if not properly matched
+            rvec_val(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var(~idx_sym),'\>'), strcat('s.',vec_var(~idx_sym)));
+            rvec_val_nested(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var(idx_sym),'\>'), strcat('s.',vec_var(idx_sym)));
                         
-                        %TODO check if string flag works
-                        if(isempty(xval) && ~idx_sym_keepstr(idx(l)))
-                            warning('Check expression ''%s'' forgotten ''=@'' or wrong syntax. Value of variable %s is set to empty',...
-                                [vec_var{idx(l)},' = ',vec_val{idx(l)}],vec_var{idx(l)});
-                        end
-                        %else it had keep string flag @[s]
-                    catch
-                        warning('Could not evaluate expression ''%s''. Check variable definition ''%s '' \n',...
+            idx_sym_matlab =  regexp(rvec_val,'@(','once'); % match definition @() then it is a matlab symbolic definition
+            idx_sym_matlab = ~cellfun(@isempty,idx_sym_matlab);
+
+            idx_sym_keepstr =  regexp(rvec_val,'@\[%s\]','once'); % match definition @() then it is must be kept as string without evaluating
+            idx_sym_keepstr = ~cellfun(@isempty,idx_sym_keepstr);
+            
+            rvec_val = strtrim(regexprep(rvec_val,'@\[%s\]',''));
+            vec_val = strtrim(regexprep(vec_val,'@\[%s\]',''));
+            rvec_val_nested = strtrim(regexprep(rvec_val_nested,'@\[%s\]',''));
+            
+            
+            %also replace original 
+%             if(sum(idx_sym_keepstr))
+%                 for k=1
+%                 original
+%             end
+            
+            %remove @ from value field except @(..) match anything but '('
+            %after @ '@[^(]' . This allows to evaluate matlab syntax
+            %symbolic expressions e.g. @(x,y) (x^2 + y^2)
+            rvec_val = regexprep(rvec_val,'@[^(]','');
+            rvec_val_nested = regexprep(rvec_val_nested,'@[^(]','');
+            %evaluate first non symbolic to obtain constants then sibolic
+            %expressions
+            s = struct();
+            xval = [];  %#ok<NASGU>
+            idx = find(~idx_sym);
+            for l=1:numel(idx)
+                try
+                    %eval(combinedCell{idx(l)}); % we just need them in the workspace but eval wont work so put in structure
+                    xval = str2num(vec_val{idx(l)});
+                    s.(vec_var{idx(l)}) = xval; %will return empty value if not properly matched
+                    
+                    %TODO check if string flag works 
+                    if(isempty(xval) && ~idx_sym_keepstr(idx(l)))
+                        warning('Check expression ''%s'' forgotten ''=@'' or wrong syntax. Value of variable %s is set to empty',...
                             [vec_var{idx(l)},' = ',vec_val{idx(l)}],vec_var{idx(l)});
                     end
+                    %else it had keep string flag @[s]
+                catch
+                    warning('Could not evaluate expression ''%s''. Check variable definition ''%s '' \n',...
+                        [vec_var{idx(l)},' = ',vec_val{idx(l)}],vec_var{idx(l)});
                 end
-                
-                
-                
-                %combinedCell = strcat(vec_var,'=',vec_val);
-                
-                %now we have all the variables irrespective of order in the
-                %structure so we canevaluate expressions
-                idx = find(idx_sym);
-                idx_fail = idx_sym<0;
-                %   idx_sym_matlab = find(idx_sym_matlab);
-                for l=1:numel(idx)
+            end
+            
+
+
+            %combinedCell = strcat(vec_var,'=',vec_val);
+            
+            %now we have all the variables irrespective of order in the
+            %structure so we canevaluate expressions
+            idx = find(idx_sym);
+            idx_fail = idx_sym<0;
+         %   idx_sym_matlab = find(idx_sym_matlab);
+            for l=1:numel(idx)
+                try
+                    %                     expression = regexprep(vec_val{idx(l)},)
+                    if(idx_sym_keepstr(idx(l)))
+                        xval = vec_val{idx(l)};
+                        original{idx(l)}{2} = xval; %kept string
+                    elseif(idx_sym_matlab(idx(l)))  %matlab symbolic definition
+                        xval = eval(rvec_val{idx(l)});
+                        original{idx(l)}{2} = xval; % we need to convert back to string the second entry that is the value of the variable
+                  %      rvec_val{idx(l)}    = xval; % also update the value so that ecursive relationships are evaluated!
+                    else
+                        xval = eval(rvec_val{idx(l)});
+                        original{idx(l)}{2} = num2str(xval); % we need to convert back to string the second entry that is the value of the variable
+                    end
+                    %else if matlab symbolic definition then dont convert to string just return the handle in array without evaluating 
+                    s.(vec_var{idx(l)}) = xval;   
+                    rvec_val{idx(l)}    = xval; % also update the value for symbolic expressions, these can then be evaluated 
+                catch
+                    %cascaded catch first try to evaluate from struct with
+                    %non string values!
                     try
-                        %                     expression = regexprep(vec_val{idx(l)},)
-                        if(idx_sym_keepstr(idx(l)))
-                            xval = vec_val{idx(l)};
-                            original{idx(l)}{2} = xval; %kept string
-                        elseif(idx_sym_matlab(idx(l)))  %matlab symbolic definition
-                            xval = eval(rvec_val{idx(l)});
-                            original{idx(l)}{2} = xval; % we need to convert back to string the second entry that is the value of the variable
-                            %      rvec_val{idx(l)}    = xval; % also update the value so that ecursive relationships are evaluated!
-                        else
-                            xval = eval(rvec_val{idx(l)});
-                            original{idx(l)}{2} = num2str(xval); % we need to convert back to string the second entry that is the value of the variable
-                        end
-                        %else if matlab symbolic definition then dont convert to string just return the handle in array without evaluating
+                        xval = eval(rvec_val_nested{idx(l)});
+                        original{idx(l)}{2} = num2str(xval);
+                        
+                        %store if succesfull
                         s.(vec_var{idx(l)}) = xval;
-                        rvec_val{idx(l)}    = xval; % also update the value for symbolic expressions, these can then be evaluated
+                        rvec_val{idx(l)}    = xval;
                     catch
-                        %cascaded catch first try to evaluate from struct with
-                        %non string values!
-                        try
-                            xval = eval(rvec_val_nested{idx(l)});
-                            original{idx(l)}{2} = num2str(xval);
-                            
-                            %store if succesfull
-                            s.(vec_var{idx(l)}) = xval;
-                            rvec_val{idx(l)}    = xval;
-                        catch
-                            warning('Could not evaluate expression ''%s''. Check variable definition ''%s '' \n',...
-                                [vec_var{idx(l)},' = ',vec_val{idx(l)}],vec_var{idx(l)});
-                            idx_fail(idx(l)) = true;
-                        end
+                    warning('Could not evaluate expression ''%s''. Check variable definition ''%s '' \n',...
+                        [vec_var{idx(l)},' = ',vec_val{idx(l)}],vec_var{idx(l)});
+                    idx_fail(idx(l)) = true;
                     end
                 end
             end

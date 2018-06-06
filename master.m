@@ -8,22 +8,22 @@ function master()
 
 % ---------------------------------------------------------------------------------:
 
-% Usage --> update 2 runtime settings are runtimeSettings = {'optionsList', 'commentDelim', 'headerDelim', 'warnEnabled', 'structnamefieldfillelemn', 'maxheaders'};
-      
+%%  Usage 2.0 --> update:
+% - 2 methods for runtimeSettings = {'optionsList', 'commentDelim', 'headerDelim', 'warnEnabled', 'structnamefieldfillelemn', 'maxheaders'};
 
 
 configpath = 'config/config.txt';
-%read config
-[options, optionsCell] = readConfig(configpath,loadOptionsList(),'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
-%equivalent to: 
-[~, ~] = readConfig(configpath,'optionsList',loadOptionsList(),'headerDelim','{}', 'commentDelim','//');
+
+%method 1:
+[~, ~]                  = readConfig(configpath,loadOptionsList(),'//','{}',false); % varargin: 1=commentdelim, 2=headerdelim 3: warnings
+% new method:
+[options, optionsCell] = readConfig(configpath,'optionsList',loadOptionsList(),'headerDelim','{}', 'commentDelim','//');
 
 disp(options.path)    %=  '/bla/bla';
 disp(options.paths)   %=  {2×1 cell};
 disp(options.boolean) %=  0;
 disp(options.vector)  %=   [1 2 3]%
 %etc...
-
 
 %display
 T = cell2table(optionsCell');
@@ -33,9 +33,25 @@ T.Properties.VariableNames = varnames;
 disp('   ----------------config options-----------------')
 disp(' ')
 disp(T)
+% ---------------------------- %
+
+%% usage 3.0 --> update:
+% - parsing symbolic variables e.g. c2 = @ c1^2*2 (any expression allowed)
+% - parsing nested variables e.g.   c3 = @ c1*2+10 (Parser evaluates
+% variables recurvively such that nested relationships are allowed 
+
+[opt, ~, ~, symbolicDefs] = readConfig('config/config_3.0.txt');
+
+cell2table(opt.system1,'VariableNames',{'system1'})
+cell2table(opt.system2,'VariableNames',{'system2'})
+cell2table(opt.system3,'VariableNames',{'system3'})
+cell2table(opt.system4,'VariableNames',{'system4'})
+
+disp('Symbolic variables:')
+disp(symbolicDefs);
+% ---------------------------- %
 
 % this is a local function to create the header names.
-
     function optionsList = loadOptionsList
         %pass the options List; %caracters must match the txt file
         optionsList = {...

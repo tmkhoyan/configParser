@@ -1,0 +1,51 @@
+//leave first line empty
+
+//comment as such 
+
+{path}
+/bla/bla
+
+//defienblocknames here. Note that instead of '/'  ‘__’ must be used to setup nested blocks
+{blocknames}
+system1
+system2
+system3
+system4
+
+//provide property name and value seperated by ' = '
+// UPDATE 3.0: parsing symbolic expressions and nested expressions
+
+{system1}
+//simple
+c1 	= 0.123 
+//eq notation also works for constants
+c2 	= @ 0.01
+//parsed as string since no @ throws warning
+c3   	= 0.135*c1
+//using nested variables
+c4  	= @ 2844.4*c1+12
+// also works for vars defined later in the file
+c5  	= @ k3*2	
+
+{system2}
+b1 = 0.02
+b2 = 6.28
+//keeps string format
+b3 =@[%s] (0.5+b1)*b2
+//returns value however @( doesnt so that matlab symbolic is correctly evaluated!
+b4 = @ (0.5+b1)*b2
+//returns a function handle
+b5 = @(x) x^2+1 
+
+//demonstrates that parameters are passed globally
+{system3}
+k1  = @ c1*2 
+k2  = @ c1/2+100
+k3  = 11.2
+
+//demonstrates recursive relationship i.e. defining variables with variables that are evaluated symbolically
+
+{system4}
+d1  = @ c1*2.2
+//note contains d1 which is evaluated using c1 
+d2  = @ d1*2.2
