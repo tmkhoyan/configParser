@@ -8,11 +8,16 @@ function [configOptionsStruct, configOptionsCell, allheaders, symbolicDefs] = re
 % see below for description
 headerDelim = [];
 maxheaders = [];
+commentDelim = [];
+warnEnabled = [];
+maxheaders = [];
+
+
 structnamefieldfillelemn = [];
 setOptargs;
 
 fileID = fopen(filename);
-charsizecomment = numel(commentDelim); %#ok<SHVAI>
+charsizecomment = numel(commentDelim); 
 
 fgets(fileID); %skip header
 N = 1000; %lines
@@ -169,7 +174,7 @@ end
 optionsSelected = cell(max([allheaders{:,2}]+1),numel(optionsList));
 
 if (headercount-1)>numel(optionsList)
-    if (warnEnabled) %#ok<SHVAI>
+    if (warnEnabled)
         warning(['Extra heading entries in config file, ',filename, ', ignored'])
     end
 end
