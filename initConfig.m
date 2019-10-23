@@ -3,7 +3,7 @@ function initConfig(varargin)
 mydir = pwd();
 
 if isempty(varargin)
-    pathConfigLib = '~/github/configParser/master.m';
+    pathConfigLib = '~/github/configParser';
 else
     pathConfigLib= varargin{1};
 end
