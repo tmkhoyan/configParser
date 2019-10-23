@@ -220,12 +220,12 @@ configOptionsCell = optionsSelected;
 
 %TODO consider returning the struct s with sorted '=' variables
 %irrespective of existence of symbolic definitions
-    function  [original, s] = evalSymbolicVar(original) %returns
+    function  [original, sTempValContainer] = evalSymbolicVar(original) %returns
         %create a safe workspace to evaluate simbolic expressions
         vec = original; %temporary container
         vec = [vec{:}]'; %unfold array
         
-        s = []; % if no symbolic expressions the struct will be returned as empty
+        sTempValContainer = []; % if no symbolic expressions the struct will be returned as empty
         
         if(~isempty(vec))
             idx_var = ~~zeros(size(vec));
@@ -241,11 +241,11 @@ configOptionsCell = optionsSelected;
             
             if(sum(idx_sym)) % if we have symbolic expressions else dont bother
                 
-                %find in symbolic expressions patterns that contain variables and replace with appended variable s.* such that it can later be evaluated using eval
+                %find in symbolic expressions patterns that contain variables and replace with appended variable sTempValContainer.* such that it can later be evaluated using eval
                 % pattern \< 'var(k)' \> is appended to variable such that the search is constrained to whole word. This prevents long named variables partially beeing replaced by short variable names e.g. var a -> cls.alpha instead of s.clapha vaiables
                 rvec_val = vec_val;
                 
-                rvec_val(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var,'\>'), strcat('s.',vec_var)); %accounts for nested relationships i.e. also replaces the definition with variables that are defined as symbolic
+                rvec_val(idx_sym) = regexprep(vec_val(idx_sym), strcat('\<',vec_var,'\>'), strcat('sTempValContainer.',vec_var)); %accounts for nested relationships i.e. also replaces the definition with variables that are defined as symbolic
                 
                 idx_sym_matlab =  regexp(rvec_val,'@(','once'); % match definition @() then it is a matlab symbolic definition
                 idx_sym_matlab = ~cellfun(@isempty,idx_sym_matlab);
@@ -264,14 +264,14 @@ configOptionsCell = optionsSelected;
                 
                 %evaluate first non symbolic to obtain constants then sibolic
                 %expressions
-                s = struct();
+                sTempValContainer = struct();
                 xval = [];  %#ok<NASGU>
                 idx = find(~idx_sym);
                 for l_count=1:numel(idx) %make sure l is not a var
                     try
                         %eval(combinedCell{idx(l)}); % we just need them in the workspace but eval wont work so put in structure
                         xval = str2num(vec_val{idx(l_count)});
-                        s.(vec_var{idx(l_count)}) = xval; %will return empty value if not properly matched
+                        sTempValContainer.(vec_var{idx(l_count)}) = xval; %will return empty value if not properly matched
                         
                         %TODO check if string flag works
                         if(isempty(xval) && ~idx_sym_keepstr(idx(l_count)))
@@ -304,7 +304,7 @@ configOptionsCell = optionsSelected;
                             original{idx(l_count)}{2} = num2str(xval); % we need to convert back to string the second entry that is the value of the variable
                         end
                         %else if matlab symbolic definition then dont convert to string just return the handle in array without evaluating
-                        s.(vec_var{idx(l_count)}) = xval;
+                        sTempValContainer.(vec_var{idx(l_count)}) = xval;
                         rvec_val{idx(l_count)}    = xval; % also update the value for symbolic expressions, these can then be evaluated
                     catch
                         idx_fail(idx(l_count)) = true;
@@ -322,7 +322,7 @@ configOptionsCell = optionsSelected;
                             original{idx(l_count)}{2} = num2str(xval);
                             
                             %store if succesfull
-                            s.(vec_var{idx(l_count)}) = xval;
+                            sTempValContainer.(vec_var{idx(l_count)}) = xval;
                             rvec_val{idx(l_count)}    = xval;
                             idx_fail(idx(l_count)) = false;
                         catch
